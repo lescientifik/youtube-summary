@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.13"
 dependencies = [
+    "curl-cffi>=0.15.0",
     "requests>=2.33.1",
     "youtube-transcript-api>=1.2.4",
 ]

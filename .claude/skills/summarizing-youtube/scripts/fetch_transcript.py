@@ -17,27 +17,20 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import requests
+from curl_cffi import requests as curl_cffi_requests
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.proxies import GenericProxyConfig  # noqa: F401  (kept for future proxy support)
 
-try:
-    from curl_cffi import requests as _curl_cffi_requests  # type: ignore
-except ImportError:  # pragma: no cover
-    _curl_cffi_requests = None
-
 
 def build_http_client():
-    """Return an HTTP client that bypasses YouTube's basic IP-bot heuristics.
+    """Browser-impersonating HTTP client used by `youtube_transcript_api`.
 
-    Cloud-provider IPs (GCP, AWS, etc.) are routinely rejected by YouTube with
-    a generic "RequestBlocked / IpBlocked" error. Impersonating a real browser
-    via `curl_cffi` (Chrome TLS+H2 fingerprint) is enough to get past this in
-    most cases without needing an external proxy. Falls back to plain requests
-    if curl_cffi is unavailable.
+    YouTube rejects requests from cloud-provider IPs (GCP, AWS, …) with a
+    generic RequestBlocked / IpBlocked error when the TLS+H2 fingerprint also
+    looks scripted. `curl_cffi` replays a real Chrome fingerprint, which is
+    enough to get past this without an external proxy.
     """
-    if _curl_cffi_requests is not None:
-        return _curl_cffi_requests.Session(impersonate="chrome120")
-    return None
+    return curl_cffi_requests.Session(impersonate="chrome120")
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
