@@ -30,6 +30,37 @@ The script prints the absolute path of the saved transcript on stdout. It is **i
 
 If the script fails (private video, no captions, network error), report the error to the user verbatim and stop. Do not invent a summary.
 
+#### Fallback: yt-dlp + InnerTube (when YouTube IP-blocks the primary)
+
+If `fetch_transcript.py` returns a `RequestBlocked` / `IpBlocked` / 429 error
+(typical from cloud-provider IPs like AWS/GCP), try the fallback fetcher:
+
+```bash
+uv run --with "yt-dlp[default,curl-cffi]" --with curl-cffi \
+    python .claude/skills/summarizing-youtube/scripts/fetch_transcript_ytdlp.py "<URL>"
+```
+
+It works around the block because:
+
+1. `yt-dlp` is invoked with `--impersonate "chrome"` and `--extractor-args
+   "youtube:player_client=ios,tv,web_safari,mweb"` — these mobile/TV InnerTube
+   endpoints are far more permissive than the HTML/consent route used by
+   `youtube-transcript-api`. The webpage may still 429, but the player JSON
+   APIs return the metadata, including signed `timedtext` caption URLs.
+2. The script extracts a caption track URL from the `info.json`'s
+   `automatic_captions` (preferring `<lang>-orig` for true ASR original) and
+   downloads the json3 stream directly with a Chrome-impersonating
+   `curl_cffi` session.
+3. The json3 ASR format is a rolling window (events with `aAppend=1` extend
+   the current line), so the parser aggregates appended segments and drops
+   prefix-duplicate lines before emitting the same `[H:MM:SS] text` format
+   as the primary script.
+
+The output transcript is byte-compatible with the primary script's format —
+the rest of the workflow (read, summarize, index) is unchanged. Pass `--lang
+fr` (or any ISO code) if you want to bias the language pick. Same `--force`
+and idempotency semantics.
+
 ### 2. Read the transcript
 
 Read the file at the path returned by step 1. The file has YAML frontmatter (`title`, `author`, `url`, `language`, `auto_generated`, `duration`) followed by a `## Transcription` section with one `[H:MM:SS] text` line per snippet.
