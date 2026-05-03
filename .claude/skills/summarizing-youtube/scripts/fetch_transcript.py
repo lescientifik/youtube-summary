@@ -20,6 +20,25 @@ import requests
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api.proxies import GenericProxyConfig  # noqa: F401  (kept for future proxy support)
 
+try:
+    from curl_cffi import requests as _curl_cffi_requests  # type: ignore
+except ImportError:  # pragma: no cover
+    _curl_cffi_requests = None
+
+
+def build_http_client():
+    """Return an HTTP client that bypasses YouTube's basic IP-bot heuristics.
+
+    Cloud-provider IPs (GCP, AWS, etc.) are routinely rejected by YouTube with
+    a generic "RequestBlocked / IpBlocked" error. Impersonating a real browser
+    via `curl_cffi` (Chrome TLS+H2 fingerprint) is enough to get past this in
+    most cases without needing an external proxy. Falls back to plain requests
+    if curl_cffi is unavailable.
+    """
+    if _curl_cffi_requests is not None:
+        return _curl_cffi_requests.Session(impersonate="chrome120")
+    return None
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 TRANSCRIPTS_DIR = PROJECT_ROOT / "transcripts"
@@ -76,7 +95,7 @@ def pick_original_transcript(video_id: str):
     create captions in the original language). Fallback to the first
     auto-generated one. Skip translation-only entries.
     """
-    transcript_list = YouTubeTranscriptApi().list(video_id)
+    transcript_list = YouTubeTranscriptApi(http_client=build_http_client()).list(video_id)
     manual = [t for t in transcript_list if not t.is_generated]
     if manual:
         return manual[0]
