@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory & Dreaming for Self-Learning Agents — Synthèse</title>
+<style>
+  :root{
+    --bg:#0f1115;
+    --panel:#171a21;
+    --panel-2:#1e222b;
+    --ink:#e7ecf3;
+    --ink-dim:#a4adbb;
+    --accent:#ff8a4c;    /* Anthropic orange */
+    --accent-2:#ffd1b3;
+    --teal:#5eead4;
+    --violet:#a78bfa;
+    --green:#86efac;
+    --red:#fca5a5;
+    --border:#262c38;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1080px;margin:0 auto;padding:48px 28px 96px}
+  header.hero{
+    background:radial-gradient(ellipse at top left, rgba(255,138,76,.18), transparent 60%),
+               radial-gradient(ellipse at bottom right, rgba(167,139,250,.12), transparent 60%),
+               linear-gradient(180deg, #181b22 0%, #11141a 100%);
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:36px 36px 28px;
+    margin-bottom:36px;
+  }
+  .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  h1{font-size:38px;line-height:1.15;margin:10px 0 14px;letter-spacing:-.02em}
+  h2{font-size:24px;margin:48px 0 16px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+  h2 .num{font-size:13px;color:var(--accent);background:rgba(255,138,76,.12);padding:3px 9px;border-radius:6px;letter-spacing:.05em}
+  h3{font-size:17px;margin:22px 0 8px}
+  .meta{display:flex;flex-wrap:wrap;gap:18px 24px;color:var(--ink-dim);font-size:14px;margin-top:6px}
+  .meta b{color:var(--ink);font-weight:500}
+  .pill{display:inline-block;font-size:12px;padding:3px 9px;border-radius:999px;background:rgba(94,234,212,.12);color:var(--teal);border:1px solid rgba(94,234,212,.25)}
+  .pill.violet{background:rgba(167,139,250,.12);color:var(--violet);border-color:rgba(167,139,250,.25)}
+  .pill.orange{background:rgba(255,138,76,.12);color:var(--accent);border-color:rgba(255,138,76,.25)}
+
+  .tldr{
+    background:linear-gradient(180deg,#1a1d25,#161922);
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent);
+    border-radius:14px;
+    padding:22px 26px;
+    font-size:16.5px;
+  }
+  .tldr strong{color:var(--accent-2)}
+
+  /* Actionables grid */
+  .actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:8px}
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px 18px 16px;
+    position:relative;
+    transition:transform .15s ease, border-color .15s ease;
+  }
+  .card:hover{transform:translateY(-2px);border-color:#3a4252}
+  .card .icon{
+    width:34px;height:34px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:14px;color:#0f1115;background:var(--accent);margin-bottom:10px;
+  }
+  .card h4{margin:0 0 6px;font-size:15.5px}
+  .card p{margin:0;color:var(--ink-dim);font-size:14px}
+  .card .ts{position:absolute;top:14px;right:14px;font-size:11px;color:var(--ink-dim);font-family:ui-monospace,Menlo,Consolas,monospace}
+
+  /* Architecture diagram */
+  .diagram{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:24px;
+    margin:14px 0;
+  }
+  .diagram svg{display:block;width:100%;height:auto}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;font-size:13px;color:var(--ink-dim)}
+  .legend .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+
+  /* Layers */
+  .layers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+  .layer{
+    background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;
+  }
+  .layer h4{margin:0 0 6px;font-size:14px;color:var(--accent)}
+  .layer ul{margin:8px 0 0;padding-left:18px;color:var(--ink-dim);font-size:13.5px}
+  .layer ul li{margin:3px 0}
+
+  /* Comparison memory vs dreaming */
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+  .compare .col{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px}
+  .compare h4{margin:0 0 8px;font-size:16px}
+  .compare .tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:6px;display:block}
+  .compare ul{margin:8px 0 0;padding-left:18px;color:var(--ink-dim);font-size:14px}
+  .compare li{margin:4px 0}
+  .compare .col.memory{border-top:3px solid var(--teal)}
+  .compare .col.dreaming{border-top:3px solid var(--violet)}
+
+  /* Results bar chart */
+  .results{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+  .result{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px}
+  .result .label{font-size:13px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.08em}
+  .result .big{font-size:48px;font-weight:700;letter-spacing:-.02em;line-height:1;margin:8px 0 6px}
+  .result.green .big{color:var(--green)}
+  .result.violet .big{color:var(--violet)}
+  .result .who{font-size:14px;color:var(--ink-dim);margin-bottom:14px}
+  .bar{height:10px;background:#202531;border-radius:6px;overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:6px}
+  .bar > i.g{background:linear-gradient(90deg,#34d399,#86efac)}
+  .bar > i.v{background:linear-gradient(90deg,#7c3aed,#a78bfa)}
+
+  /* Timeline */
+  .timeline{border-left:2px solid var(--border);padding-left:18px;margin-top:8px}
+  .tl-item{position:relative;margin-bottom:14px}
+  .tl-item::before{content:"";position:absolute;left:-25px;top:7px;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .tl-item .ts{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--accent);margin-right:8px}
+  .tl-item .t{font-weight:500}
+  .tl-item .d{color:var(--ink-dim);font-size:14px;margin-top:2px}
+
+  /* Quote */
+  blockquote{
+    margin:14px 0;padding:14px 18px;
+    border-left:3px solid var(--violet);
+    background:var(--panel-2);
+    border-radius:0 10px 10px 0;
+    color:var(--ink);
+    font-style:italic;
+  }
+  blockquote .who{display:block;margin-top:6px;color:var(--ink-dim);font-size:13px;font-style:normal}
+
+  /* Footer */
+  footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);color:var(--ink-dim);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  code{background:#1b1f28;padding:1px 6px;border-radius:5px;font-size:13px;color:var(--accent-2)}
+
+  @media (max-width:760px){
+    h1{font-size:28px}
+    .layers,.compare,.results{grid-template-columns:1fr}
+    .wrap{padding:28px 16px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Anthropic · Code with Claude</div>
+    <h1>Memory &amp; Dreaming pour agents auto-apprenants</h1>
+    <div class="meta">
+      <span><b>Mahesh</b> · PM Platform, Anthropic</span>
+      <span>Durée : <b>24:28</b></span>
+      <span><a href="https://www.youtube.com/watch?v=RtywqDFBYnQ" target="_blank">Voir la vidéo ↗</a></span>
+    </div>
+    <div style="margin-top:14px">
+      <span class="pill orange">Memory · Public Beta</span>
+      <span class="pill violet">Dreaming · Research Preview</span>
+      <span class="pill">Managed Agents API</span>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">TL;DR</span> En 30 secondes</h2>
+    <div class="tldr">
+      Anthropic présente <strong>Memory</strong> (en beta publique) et <strong>Dreaming</strong> (lancé en research preview ce jour-là) dans la <em>Managed Agents API</em>.
+      L'idée : modéliser la mémoire d'un agent comme un <strong>système de fichiers</strong> que Claude gère lui-même avec <code>bash</code>/<code>grep</code>,
+      le découper en <strong>memory stores</strong> avec des scopes de permissions (lecture seule pour la connaissance partagée, lecture/écriture pour la mémoire de travail),
+      ajouter <strong>versioning + concurrence optimiste</strong> pour les essaims d'agents, puis lancer un processus <strong>asynchrone hors-bande</strong>
+      (Dreaming) qui relit les transcripts de la veille, déduplique, consolide et enrichit la mémoire — pour que les agents du lendemain soient meilleurs sans coût de latence.
+      Résultats annoncés : <strong>Harvey ×6 sur un benchmark juridique</strong>, <strong>Rakuten −90% d'erreurs au premier essai</strong>.
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">1</span> Actionables prioritaires</h2>
+    <p style="color:var(--ink-dim);margin-top:0">Ce que tu peux mettre en pratique dès maintenant si tu construis des agents.</p>
+    <div class="actions">
+
+      <div class="card">
+        <span class="ts">[5:32]</span>
+        <div class="icon">A1</div>
+        <h4>Modélise la mémoire comme un FS</h4>
+        <p>Une hiérarchie de fichiers que l'agent gère via <code>bash</code> + <code>grep</code>. Évite les schémas rigides. Opus 4.7 est SOTA sur ce pattern.</p>
+      </div>
+
+      <div class="card">
+        <span class="ts">[7:15]</span>
+        <div class="icon">A2</div>
+        <h4>Découpe en plusieurs stores</h4>
+        <p>Un store <b>read-only</b> pour la connaissance organisationnelle (runbooks, SLO) + un store <b>read-write</b> par équipe/tâche pour la mémoire de travail.</p>
+      </div>
+
+      <div class="card">
+        <span class="ts">[7:59]</span>
+        <div class="icon">A3</div>
+        <h4>Concurrence optimiste (hash)</h4>
+        <p>Quand des dizaines d'agents écrivent en parallèle : précondition par <b>content hash</b> avant chaque update pour ne pas écraser le travail d'un autre.</p>
+      </div>
+
+      <div class="card">
+        <span class="ts">[8:25]</span>
+        <div class="icon">A4</div>
+        <h4>Audit log + attribution</h4>
+        <p>Version history complet, qui a modifié quoi à quel timestamp depuis quelle session. À exposer aussi <b>aux agents</b> pour qu'ils raisonnent sur les changements.</p>
+      </div>
+
+      <div class="card">
+        <span class="ts">[9:00]</span>
+        <div class="icon">A5</div>
+        <h4>API portable, pas de lock-in</h4>
+        <p>Branche un pipeline externe : <b>PII scanning</b>, nettoyage, clonage vers un système maison. Ne couple pas la mémoire au harness.</p>
+      </div>
+
+      <div class="card">
+        <span class="ts">[14:11]</span>
+        <div class="icon">A6</div>
+        <h4>Sépare deux objectifs</h4>
+        <p>L'agent en session optimise la <b>tâche</b>. Le job Dreaming optimise la <b>qualité de la mémoire</b>. Ne mélange jamais ces deux objectifs.</p>
+      </div>
+
+      <div class="card">
+        <span class="ts">[12:14]</span>
+        <div class="icon">A7</div>
+        <h4>Trigger Dreaming intelligemment</h4>
+        <p>Lance-le <b>en cron</b> (nuit) ou <b>au spin-down</b> d'un agent qui finit une tâche. Toujours hors du hot-path → zéro latence sur la session active.</p>
+      </div>
+
+      <div class="card">
+        <span class="ts">[13:01]</span>
+        <div class="icon">A8</div>
+        <h4>Diff + review humain avant apply</h4>
+        <p>Dreaming produit un <b>diff</b>. Tu peux l'appliquer direct ou passer par une étape de revue via l'API. Penses-y pour les domaines sensibles.</p>
+      </div>
+
+      <div class="card">
+        <span class="ts">[15:48]</span>
+        <div class="icon">A9</div>
+        <h4>Compute upfront, amortis</h4>
+        <p>Vois Dreaming comme un <b>index de recherche</b> : on dépense les tokens une fois en amont, des centaines d'agents lisent ensuite efficacement.</p>
+      </div>
+
+      <div class="card">
+        <span class="ts">[21:41]</span>
+        <div class="icon">A10</div>
+        <h4>Cherche les patterns cross-sessions</h4>
+        <p>Un agent seul ne voit que sa session. Dreaming repère « 5 entrées identiques », « pic CPU + 60 s = retry », et les <b>consolide en une note</b> partagée.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">2</span> L'architecture en un schéma</h2>
+    <div class="diagram">
+      <svg viewBox="0 0 980 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture Memory + Dreaming">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#5eead4" stop-opacity=".18"/>
+            <stop offset="1" stop-color="#5eead4" stop-opacity=".04"/>
+          </linearGradient>
+          <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#a78bfa" stop-opacity=".22"/>
+            <stop offset="1" stop-color="#a78bfa" stop-opacity=".05"/>
+          </linearGradient>
+          <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#ff8a4c" stop-opacity=".18"/>
+            <stop offset="1" stop-color="#ff8a4c" stop-opacity=".04"/>
+          </linearGradient>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="#a4adbb"/>
+          </marker>
+        </defs>
+
+        <!-- Agents swarm -->
+        <g>
+          <rect x="30" y="30" width="280" height="200" rx="14" fill="url(#g3)" stroke="#ff8a4c" stroke-opacity=".35"/>
+          <text x="50" y="58" fill="#ffd1b3" font-size="14" font-weight="700" letter-spacing="1">SWARM D'AGENTS (in-band)</text>
+          <text x="50" y="78" fill="#a4adbb" font-size="12">Sessions, hot path, latence critique</text>
+          <!-- agent circles -->
+          <g fill="#ff8a4c">
+            <circle cx="80" cy="125" r="18"/>
+            <circle cx="135" cy="155" r="18"/>
+            <circle cx="195" cy="120" r="18"/>
+            <circle cx="245" cy="160" r="18"/>
+            <circle cx="105" cy="195" r="18"/>
+            <circle cx="225" cy="200" r="18"/>
+          </g>
+          <text x="80" y="129" fill="#0f1115" font-size="11" text-anchor="middle" font-weight="700">A1</text>
+          <text x="135" y="159" fill="#0f1115" font-size="11" text-anchor="middle" font-weight="700">A2</text>
+          <text x="195" y="124" fill="#0f1115" font-size="11" text-anchor="middle" font-weight="700">A3</text>
+          <text x="245" y="164" fill="#0f1115" font-size="11" text-anchor="middle" font-weight="700">A4</text>
+          <text x="105" y="199" fill="#0f1115" font-size="11" text-anchor="middle" font-weight="700">A5</text>
+          <text x="225" y="204" fill="#0f1115" font-size="11" text-anchor="middle" font-weight="700">A…</text>
+        </g>
+
+        <!-- Memory stores -->
+        <g>
+          <rect x="370" y="30" width="320" height="200" rx="14" fill="url(#g1)" stroke="#5eead4" stroke-opacity=".4"/>
+          <text x="390" y="58" fill="#5eead4" font-size="14" font-weight="700" letter-spacing="1">MEMORY STORES (file system)</text>
+          <text x="390" y="78" fill="#a4adbb" font-size="12">bash + grep · permission scopes · concurrency</text>
+
+          <!-- store boxes -->
+          <rect x="390" y="95" width="280" height="38" rx="8" fill="#11141a" stroke="#2b3140"/>
+          <text x="406" y="119" fill="#e7ecf3" font-size="13">📘 org-wide knowledge</text>
+          <text x="660" y="119" fill="#86efac" font-size="11" text-anchor="end" font-weight="700">RO</text>
+
+          <rect x="390" y="142" width="280" height="38" rx="8" fill="#11141a" stroke="#2b3140"/>
+          <text x="406" y="166" fill="#e7ecf3" font-size="13">⚡ team / SRE working memory</text>
+          <text x="660" y="166" fill="#ff8a4c" font-size="11" text-anchor="end" font-weight="700">RW</text>
+
+          <rect x="390" y="189" width="280" height="32" rx="8" fill="#11141a" stroke="#2b3140"/>
+          <text x="406" y="210" fill="#e7ecf3" font-size="13">🗂 codebase memory</text>
+          <text x="660" y="210" fill="#ff8a4c" font-size="11" text-anchor="end" font-weight="700">RW</text>
+        </g>
+
+        <!-- Arrows from agents to memory -->
+        <g stroke="#a4adbb" stroke-width="1.5" fill="none" marker-end="url(#arrow)">
+          <path d="M310,130 C340,130 350,130 370,130"/>
+          <path d="M310,170 C340,170 350,170 370,170"/>
+        </g>
+        <text x="320" y="120" fill="#a4adbb" font-size="11">read</text>
+        <text x="320" y="190" fill="#a4adbb" font-size="11">write</text>
+
+        <!-- Dreaming -->
+        <g>
+          <rect x="370" y="270" width="320" height="160" rx="14" fill="url(#g2)" stroke="#a78bfa" stroke-opacity=".45"/>
+          <text x="390" y="298" fill="#c4b5fd" font-size="14" font-weight="700" letter-spacing="1">DREAMING (out-of-band)</text>
+          <text x="390" y="318" fill="#a4adbb" font-size="12">batch async · cron / post-task · zero latency</text>
+          <g fill="#a4adbb" font-size="12">
+            <text x="390" y="345">① lit transcripts récents</text>
+            <text x="390" y="365">② trouve patterns + erreurs partagées</text>
+            <text x="390" y="385">③ produit un DIFF (consolidate, dedup, verify)</text>
+            <text x="390" y="405">④ apply → memory mise à jour</text>
+          </g>
+        </g>
+
+        <!-- Arrow memory <-> dreaming -->
+        <g stroke="#a78bfa" stroke-width="1.7" fill="none" marker-end="url(#arrow)">
+          <path d="M530,230 C530,250 530,255 530,270"/>
+        </g>
+        <text x="540" y="255" fill="#c4b5fd" font-size="11">reads + writes</text>
+
+        <!-- Sub-agents -->
+        <g>
+          <rect x="740" y="270" width="210" height="160" rx="14" fill="#171a21" stroke="#262c38"/>
+          <text x="755" y="298" fill="#e7ecf3" font-size="13" font-weight="700">SUB-AGENTS DREAMING</text>
+          <text x="755" y="316" fill="#a4adbb" font-size="11">parcours en parallèle des transcripts</text>
+          <g fill="#a78bfa">
+            <circle cx="780" cy="365" r="14"/>
+            <circle cx="820" cy="365" r="14"/>
+            <circle cx="860" cy="365" r="14"/>
+            <circle cx="900" cy="365" r="14"/>
+            <circle cx="800" cy="400" r="14"/>
+            <circle cx="880" cy="400" r="14"/>
+          </g>
+        </g>
+
+        <!-- Arrow dreaming -> subagents -->
+        <g stroke="#a4adbb" stroke-width="1.5" fill="none" marker-end="url(#arrow)">
+          <path d="M690,350 C710,350 720,350 740,350"/>
+        </g>
+
+        <!-- Audit log -->
+        <g>
+          <rect x="740" y="30" width="210" height="200" rx="14" fill="#171a21" stroke="#262c38"/>
+          <text x="755" y="58" fill="#e7ecf3" font-size="13" font-weight="700">AUDIT &amp; CONTROL</text>
+          <g fill="#a4adbb" font-size="12">
+            <text x="755" y="85">🕘 version history</text>
+            <text x="755" y="108">🔖 attribution (qui/quand/session)</text>
+            <text x="755" y="131"># content-hash precondition</text>
+            <text x="755" y="154">🔌 portable API</text>
+            <text x="755" y="177">🛡 PII scanning (custom)</text>
+            <text x="755" y="200">🧹 cleanup pipeline (custom)</text>
+          </g>
+        </g>
+
+        <!-- arrow memory -> audit -->
+        <g stroke="#a4adbb" stroke-width="1.2" stroke-dasharray="4 3" fill="none" marker-end="url(#arrow)">
+          <path d="M690,130 C710,130 720,130 740,130"/>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><i class="dot" style="background:#ff8a4c"></i>Agents en session (in-band, latence critique)</span>
+        <span><i class="dot" style="background:#5eead4"></i>Memory stores (file system, scopes)</span>
+        <span><i class="dot" style="background:#a78bfa"></i>Dreaming (out-of-band, async)</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">3</span> Les 3 couches d'un système mémoire frontier</h2>
+    <p style="color:var(--ink-dim);margin-top:0">À [9:39] Mahesh formalise la conception en 3 couches indépendantes. Chacune se conçoit séparément.</p>
+    <div class="layers">
+      <div class="layer">
+        <h4>① Storage</h4>
+        <b>Où</b> les données vivent.
+        <ul>
+          <li>Métadonnées d'attribution</li>
+          <li>Versioning / audit log</li>
+          <li>Concurrence (content hash)</li>
+          <li>Scopes de permissions</li>
+        </ul>
+      </div>
+      <div class="layer">
+        <h4>② Structure &amp; content</h4>
+        <b>Quoi</b> et <b>comment</b> on encode.
+        <ul>
+          <li>Fichiers dans un FS (Memory)</li>
+          <li>Skills = mémoire procédurale</li>
+          <li>Hiérarchie gérée par Claude</li>
+        </ul>
+      </div>
+      <div class="layer">
+        <h4>③ Process</h4>
+        <b>Quand</b> et <b>comment</b> on met à jour.
+        <ul>
+          <li>In-band (l'agent lui-même)</li>
+          <li>Out-of-band (<b>Dreaming</b>)</li>
+          <li>Cron / post-task triggers</li>
+          <li>Diff + review humain</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">4</span> Memory vs Dreaming</h2>
+    <div class="compare">
+      <div class="col memory">
+        <span class="tag">In-band · temps réel</span>
+        <h4>🧠 Memory</h4>
+        <ul>
+          <li>L'agent lit/écrit pendant qu'il travaille</li>
+          <li>Perspective <b>locale</b> (sa session, sa tâche)</li>
+          <li>Latence : sur le hot path</li>
+          <li>Outils : <code>bash</code>, <code>grep</code></li>
+          <li>Beta publique dans Managed Agents API</li>
+        </ul>
+      </div>
+      <div class="col dreaming">
+        <span class="tag">Out-of-band · batch async</span>
+        <h4>💭 Dreaming</h4>
+        <ul>
+          <li>Process indépendant, sur cron ou post-task</li>
+          <li>Perspective <b>globale</b> (n sessions, n agents)</li>
+          <li>Latence : zéro sur les agents en cours</li>
+          <li>Produit un <b>diff</b> à appliquer</li>
+          <li>Research preview (lancé le jour de la talk)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">5</span> Résultats clients annoncés</h2>
+    <p style="color:var(--ink-dim);margin-top:0">Chiffres cités par Mahesh — à prendre comme témoignages early-adopter, pas comme benchmark public.</p>
+    <div class="results">
+      <div class="result green">
+        <div class="label">Rakuten · Memory [4:01]</div>
+        <div class="big">−90%</div>
+        <div class="who">d'erreurs au premier passage sur leurs <i>knowledge agents</i> internes, + meilleure efficacité tokens et latence.</div>
+        <div class="bar"><i class="g" style="width:90%"></i></div>
+      </div>
+      <div class="result violet">
+        <div class="label">Harvey · Dreaming [11:55]</div>
+        <div class="big">×6</div>
+        <div class="who">de taux de complétion sur un de leurs benchmarks juridiques (scénario réaliste).</div>
+        <div class="bar"><i class="v" style="width:100%"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">6</span> Démo SRE : ce qu'on voit en pratique</h2>
+    <div class="timeline">
+      <div class="tl-item">
+        <span class="ts">[17:49]</span><span class="t">Agent SRE écoute les alertes</span>
+        <div class="d">Pour chaque alerte, il spawn un sub-agent de triage (ou un agent qui ouvre une PR).</div>
+      </div>
+      <div class="tl-item">
+        <span class="ts">[18:12]</span><span class="t">3 memory stores par agent</span>
+        <div class="d"><code>org-wide knowledge</code> (RO, runbooks/SLO) · <code>SRE memory</code> (RW) · <code>codebase memory</code> (RW).</div>
+      </div>
+      <div class="tl-item">
+        <span class="ts">[18:49]</span><span class="t">P1 → investigation</span>
+        <div class="d">L'agent vérifie CPU, traffic, PR récents, écrit ses findings dans le SRE store sous forme de diff.</div>
+      </div>
+      <div class="tl-item">
+        <span class="ts">[19:17]</span><span class="t">2e agent sur la même alerte</span>
+        <div class="d">Lit la note du précédent → short-circuit immédiat de l'investigation. <b>Gain tokens + intelligence</b>.</div>
+      </div>
+      <div class="tl-item">
+        <span class="ts">[19:57]</span><span class="t">Audit log dans la console</span>
+        <div class="d">Chaque écriture est horodatée, attribuée à un agent + une session, avec son precondition hash.</div>
+      </div>
+      <div class="tl-item">
+        <span class="ts">[20:47]</span><span class="t">Lancement d'un job Dreaming</span>
+        <div class="d">Cible : le SRE store. Source : toutes les sessions des 7 derniers jours qui l'ont touché.</div>
+      </div>
+      <div class="tl-item">
+        <span class="ts">[21:41]</span><span class="t">Le diff produit par Dreaming</span>
+        <div class="d">① ajoute une note « pattern : alertes 60 s après pic CPU = retry inefficace » que personne n'avait vu seul · ② consolide 5 entrées dupliquées · ③ supprime une entrée stale · ④ note de <i>verification</i> : la mémoire est à jour, fiable pour demain.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">7</span> Insight conceptuel à retenir</h2>
+    <blockquote>
+      « Dreaming suit les mêmes lois d'échelle que le <i>test-time compute</i> : tu dépenses plus de tokens en amont pour garder la mémoire organisée, et tu amortis ce coût sur tous les agents qui la lisent ensuite. C'est l'équivalent d'un index de recherche curaté pour des swarms d'agents. »
+      <span class="who">— Mahesh, paraphrase de [15:48–16:51]</span>
+    </blockquote>
+    <p style="color:var(--ink-dim)">Autrement dit : Memory = la <b>RAM</b> tactique d'un agent ; Dreaming = la <b>consolidation mnésique</b> nocturne qui transforme la RAM d'un essaim en <b>base de connaissance</b> d'entreprise.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">8</span> Stack chronologique des primitives Anthropic</h2>
+    <div class="timeline">
+      <div class="tl-item"><span class="ts">~ 2024</span><span class="t">CLAUDE.md (Claude Code)</span><div class="d">Première forme de mémoire : un fichier de notes partagé agent ⇄ user.</div></div>
+      <div class="tl-item"><span class="ts">2024–25</span><span class="t">MCP</span><div class="d">Accès uniformisé aux outils et données externes.</div></div>
+      <div class="tl-item"><span class="ts">2025</span><span class="t">Harnesses (Claude Code, Agent SDK)</span><div class="d">Boucles d'exécution longues, robustes.</div></div>
+      <div class="tl-item"><span class="ts">Oct. 2025</span><span class="t">Skills</span><div class="d">Mémoire procédurale partagée entre agents et humains.</div></div>
+      <div class="tl-item"><span class="ts">Avr. 2026</span><span class="t">Opus 4.7</span><div class="d">SOTA sur la gestion de mémoire en file system.</div></div>
+      <div class="tl-item"><span class="ts">~Avr. 2026</span><span class="t">Memory (public beta)</span><div class="d">Mémoire-FS managée, scopes, concurrence, audit.</div></div>
+      <div class="tl-item"><span class="ts">11 mai 2026</span><span class="t">Dreaming (research preview)</span><div class="d">Consolidation out-of-band des transcripts en mémoire curatée.</div></div>
+    </div>
+  </section>
+
+  <footer>
+    <div>Source : <a href="https://www.youtube.com/watch?v=RtywqDFBYnQ" target="_blank">YouTube · Anthropic — Memory and dreaming for self-learning agents</a></div>
+    <div>Synthèse générée le 2026-05-11</div>
+  </footer>
+
+</div>
+</body>
+</html>
